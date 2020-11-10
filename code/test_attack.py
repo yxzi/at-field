@@ -10,8 +10,8 @@ from art.utils import load_mnist, load_cifar10
 import argparse
 import os
 import setGPU
-from datasets import get_dataset, DATASETS, get_num_classes
-from core import Smooth
+# from datasets import get_dataset, DATASETS, get_num_classes
+# from core import Smooth
 from time import time
 import torch
 import datetime
@@ -19,7 +19,10 @@ from architectures import get_architecture
 
 from pprint import pprint as pp
 
-from torchvision import transforms
+from torchvision import transforms, datasets
+
+from utils import get_num_classes, get_architecture
+from smooth import Smooth
 
 # TODO: clean up imports
 
@@ -45,17 +48,14 @@ args = parser.parse_args()
 
 # load the base classifier
 checkpoint = torch.load(args.base_classifier)
-base_classifier = get_architecture(checkpoint["arch"], args.dataset)
-base_classifier.load_state_dict(checkpoint['state_dict'])
+base_classifier = get_architecture(checkpoint["arch"])
+base_classifier.load_state_dict(checkpoint['model_state_dict'])
 
 # create the smooothed classifier g
-smoothed_classifier = Smooth(base_classifier, get_num_classes(args.dataset), args.sigma)
+smoothed_classifier = Smooth(base_classifier, get_num_classes(), args.sigma)
 
 # # iterate through the dataset
-dataset = get_dataset(args.dataset, args.split)
-# print(dataset.data.shape)
-
-# (x_train, y_train), (x_test, y_test), min_pixel_value, max_pixel_value = load_cifar10()
+dataset = datasets.CIFAR10("./dataset_cache", train=False, download=True, transform=transforms.ToTensor())
 
 y_test = np.asarray(dataset.targets)    # test labels
 min_pixel_value = 0.0   # min value
