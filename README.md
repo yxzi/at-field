@@ -5,7 +5,7 @@
 
 # Getting started
 
-1.  Clone this repository: `git clone git@github.com:locuslab/smoothing.git`
+1.  Clone this repository: `git clone https://github.com/yxzi/at-field.git`
 
 2.  Install the dependencies:  
 ```
