@@ -15,7 +15,7 @@ import setGPU
 from time import time
 import torch
 import datetime
-from architectures import get_architecture
+# from architectures import get_architecture
 
 from pprint import pprint as pp
 
