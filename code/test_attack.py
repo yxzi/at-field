@@ -98,9 +98,9 @@ for i in range(args.max):
     # output image
     if i < 5:
         x = x.cpu()
-        x = x + torch.randn_like(x) * args.noise_sd
+        x = x + torch.randn_like(x) * args.sigma
         pil = toPilImage(x)
-        pil.save("{}/img_nn_{}_{}.png".format("./output", i, args.noise_sd ))
+        pil.save("{}/img_nn_{}_{}.png".format("./output", i, args.sigma ))
 
     # record prediction
     predictions.append(pred)
