@@ -2,7 +2,6 @@ import argparse
 import setGPU
 from time import time
 import torch
-from architectures import get_architecture
 import datetime
 
 from utils import get_num_classes, get_architecture
