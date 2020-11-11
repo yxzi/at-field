@@ -107,13 +107,13 @@ def train(dataloader, model,criterion, optimizer, scheduler, epoch):
 
         x = x + torch.randn_like(x, device=device) * args.noise_sd
         
-        # output image
-        if i < 5:
-            # noisy_image = torch.clamp(x.cpu() + noise * noise_sd, min=0, max=1)
-            pil = toPilImage(x.cpu())
-            pil.save("{}/img_n_{}.png".format("./output", i ))
-        if i == 5:
-            exit(0)
+        # # output image
+        # if i < 5:
+        #     # noisy_image = torch.clamp(x.cpu() + noise * noise_sd, min=0, max=1)
+        #     pil = toPilImage(x.cpu())
+        #     pil.save("{}/img_n_{}_.png".format("./output", batch_num ))
+        # if i == 5:
+        #     exit(0)
 
         output = model(x)       
         loss = criterion(output, y)

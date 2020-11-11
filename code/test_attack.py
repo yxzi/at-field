@@ -96,10 +96,11 @@ for i in range(args.max):
     pred = smoothed_classifier.predict(x, args.N, args.alpha, args.batch)
 
     # output image
-    # if i < 5:
-    #     # noisy_image = torch.clamp(x.cpu() + noise * noise_sd, min=0, max=1)
-    #     pil = toPilImage(x.cpu())
-    #     pil.save("{}/img_org_{}.png".format("./output", i ))
+    if i < 5:
+        x = x.cpu()
+        x = x + torch.randn_like(x) * args.noise_sd
+        pil = toPilImage(x)
+        pil.save("{}/img_nn_{}_{}.png".format("./output", i, args.noise_sd ))
 
     # record prediction
     predictions.append(pred)
