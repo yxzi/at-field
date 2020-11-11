@@ -70,7 +70,6 @@ def main():
     train_loader = DataLoader(cifar_train, shuffle=True, batch_size=args.batch, num_workers=args.workers)
     val_loader = DataLoader(cifar_val, shuffle=False, batch_size=args.batch,num_workers=args.workers)
     
-    # model = torchvision.models.resnet18(pretrained=False, progress=True).to(device)
     model = get_architecture(args.arch)
     
     criterion = CrossEntropyLoss()

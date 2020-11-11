@@ -1,9 +1,5 @@
-""" This script loads a base classifier and then runs PREDICT on many examples from a dataset.
-"""
 import argparse
 import setGPU
-# from datasets import get_dataset, DATASETS, get_num_classes
-# from core import Smooth
 from time import time
 import torch
 from architectures import get_architecture
@@ -14,7 +10,6 @@ from smooth import Smooth
 from torchvision import transforms, datasets
 
 parser = argparse.ArgumentParser(description='Predict on many examples')
-parser.add_argument("dataset", choices=DATASETS, help="which dataset")
 parser.add_argument("base_classifier", type=str, help="path to saved pytorch model of base classifier")
 parser.add_argument("sigma", type=float, help="noise hyperparameter")
 parser.add_argument("outfile", type=str, help="output file")

@@ -10,12 +10,9 @@ from art.utils import load_mnist, load_cifar10
 import argparse
 import os
 import setGPU
-# from datasets import get_dataset, DATASETS, get_num_classes
-# from core import Smooth
 from time import time
 import torch
 import datetime
-# from architectures import get_architecture
 
 from pprint import pprint as pp
 
