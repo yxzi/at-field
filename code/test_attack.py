@@ -31,10 +31,8 @@ from smooth import Smooth
 # TODO: some args are redundent
 
 parser = argparse.ArgumentParser(description='Certify many examples')
-parser.add_argument("dataset", help="which dataset")
 parser.add_argument("base_classifier", type=str, help="path to saved pytorch model of base classifier")
 parser.add_argument("sigma", type=float, help="noise hyperparameter")
-parser.add_argument("outfile", type=str, help="output file")
 parser.add_argument("--batch", type=int, default=1000, help="batch size")
 parser.add_argument("--skip", type=int, default=1, help="how many examples to skip")
 parser.add_argument("--max", type=int, default=300, help="stop after this many examples")
@@ -42,6 +40,7 @@ parser.add_argument("--split", choices=["train", "test"], default="test", help="
 parser.add_argument("--N0", type=int, default=100)
 parser.add_argument("--N", type=int, default=100000, help="number of samples to use")
 parser.add_argument("--alpha", type=float, default=0.001, help="failure probability")
+parser.add_argument("--nb_grads", type=int, default=10, help="nb_grads parameter for DeepFool adversarial trainer")
 args = parser.parse_args()
 
 ## Step 1: load model and dataset
@@ -126,7 +125,7 @@ print("Accuracy on benign test examples: {}%".format(accuracy * 100))
 # attack = FastGradientMethod(estimator=classifier, eps=0.1)
 # x_test_adv = attack.generate(x=x_test)
 
-adv_crafter = DeepFool(classifier)
+adv_crafter = DeepFool(classifier, nb_grads=args.nb_grads)
 print("Craft attack on training examples")
 x_test_adv = adv_crafter.generate(x_test)
 
@@ -143,10 +142,10 @@ for i in range(x_test_adv.shape[0]):
     pred = smoothed_classifier.predict(x, args.N, args.alpha, args.batch)
     predictions.append(pred)
 
-    # output image
-    if i < 5:
-        pil = toPilImage(x.cpu())
-        pil.save("{}/img_fool_{}.png".format("./output", i ))
+    # # output image
+    # if i < 5:
+    #     pil = toPilImage(x.cpu())
+    #     pil.save("{}/img_fool_{}.png".format("./output", i ))
 
     if i%50==0:
         print("{} of {}".format(i,x_test.shape[0]))
