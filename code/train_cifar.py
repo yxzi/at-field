@@ -100,12 +100,21 @@ def train(dataloader, model,criterion, optimizer, scheduler, epoch):
     train_acc = 0
     total = len(dataloader)
     start = time.time()
+    toPilImage = transforms.ToPILImage()    # transform tensor into PIL image to save
     for batch_num, (x, y) in enumerate(dataloader):
         x = x.to(device)
         y = y.to(device)
 
         x = x + torch.randn_like(x, device=device) * args.noise_sd
         
+        # output image
+        if i < 5:
+            # noisy_image = torch.clamp(x.cpu() + noise * noise_sd, min=0, max=1)
+            pil = toPilImage(x.cpu())
+            pil.save("{}/img_n_{}.png".format("./output", i ))
+        if i == 5:
+            exit(0)
+
         output = model(x)       
         loss = criterion(output, y)
         acc = accuracy(output, y)
