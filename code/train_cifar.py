@@ -70,7 +70,8 @@ def main():
     train_loader = DataLoader(cifar_train, shuffle=True, batch_size=args.batch, num_workers=args.workers)
     val_loader = DataLoader(cifar_val, shuffle=False, batch_size=args.batch,num_workers=args.workers)
     
-    model = get_architecture(args.arch)
+    # model = get_architecture(args.arch)
+    model = torchvision.models.resnet18(pretrained=False, progress=True, **{"num_classes": 10}).to(device)
     
     criterion = CrossEntropyLoss()
     optimizer = SGD(model.parameters(), lr=args.lr, momentum=args.momentum, weight_decay=args.weight_decay)
