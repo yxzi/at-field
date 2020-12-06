@@ -3,7 +3,7 @@ import torch.nn.functional as F
 import torch.optim as optim
 import numpy as np
 
-from art.attacks.evasion import FastGradientMethod, DeepFool, ProjectedGradientDescent
+from art.attacks.evasion import FastGradientMethod, DeepFool, ProjectedGradientDescent, AutoProjectedGradientDescent
 from art.estimators.classification import PyTorchClassifier
 from art.utils import load_mnist, load_cifar10, random_targets
 
@@ -40,7 +40,8 @@ parser.add_argument("--N", type=int, default=100000, help="number of samples to 
 parser.add_argument("--alpha", type=float, default=0.001, help="failure probability")
 parser.add_argument("--nb_grads", type=int, default=10, help="nb_grads parameter for DeepFool adversarial trainer")
 parser.add_argument("--eps", type=float, default=0.3, help="eps parameter for PGD adversarial trainer")
-parser.add_argument("--eps_step", type=float, default=0.1, help="eps_step parameter for DeepFool adversarial trainer")
+parser.add_argument("--eps_step", type=float, default=0.1, help="eps_step parameter for PGD adversarial trainer")
+parser.add_argument("--max_iter", type=int, default=5, help="max_iter parameter for PGD adversarial trainer")
 args = parser.parse_args()
 
 ## Step 1: load model and dataset
@@ -129,14 +130,25 @@ print("Accuracy on benign test examples: {}%".format(accuracy * 100))
 # x_test_adv = attack.generate(x=x_test)
 
 # adv_crafter = DeepFool(classifier, nb_grads=args.nb_grads)
-adv_crafter_untargeted = ProjectedGradientDescent(classifier, eps=args.eps, eps_step=args.eps_step, max_iter=5)
-print("Craft attack on untargeted training examples")
+# pgd
+adv_crafter_untargeted = ProjectedGradientDescent(classifier, eps=args.eps, eps_step=args.eps_step, max_iter=args.max_iter)
+print("PGD:Craft attack on untargeted training examples")
 x_test_adv = adv_crafter_untargeted.generate(x_test)
 
-adv_crafter_targeted = ProjectedGradientDescent(classifier, targeted=True, eps=args.eps_step, eps_step=args.eps_step, max_iter=5)
-print("Craft attack on targeted training examples")
+adv_crafter_targeted = ProjectedGradientDescent(classifier, targeted=True, eps=args.eps_step, eps_step=args.eps_step, max_iter=args.max_iter)
+print("PGD:Craft attack on targeted training examples")
 targets = random_targets(y_test, nb_classes=10)
 x_test_adv_targeted = adv_crafter_targeted.generate(x_test, **{"y":targets})
+
+#auto pgd
+auto_adv_crafter_untargeted = AutoProjectedGradientDescent(classifier, eps=args.eps, eps_step=args.eps_step, max_iter=args.max_iter)
+print("AutoPGD:Craft attack on untargeted training examples")
+x_test_auto_adv = auto_adv_crafter_untargeted.generate(x_test)
+
+auto_adv_crafter_targeted = AutoProjectedGradientDescent(classifier, targeted=True, eps=args.eps_step, eps_step=args.eps_step, max_iter=args.max_iter)
+print("AutoPGD:Craft attack on targeted training examples")
+targets = random_targets(y_test, nb_classes=10)
+x_test_auto_adv_targeted = auto_adv_crafter_targeted.generate(x_test, **{"y":targets})
 
 # deepfool takes ~8 second for each adversarial image
 
@@ -145,8 +157,11 @@ x_test_adv_targeted = adv_crafter_targeted.generate(x_test, **{"y":targets})
 # pp(x_test_adv.shape)
 predictions_untargeted = []
 predictions_targeted = []
+auto_predictions_untargeted = []
+auto_predictions_targeted = []
 
 for i in range(x_test_adv.shape[0]):
+    # pgd
     x = torch.from_numpy(x_test_adv[i]).cuda()
     # predict
     pred = smoothed_classifier.predict(x, args.N, args.alpha, args.batch)
@@ -156,6 +171,17 @@ for i in range(x_test_adv.shape[0]):
     # predict
     pred = smoothed_classifier.predict(x, args.N, args.alpha, args.batch)
     predictions_targeted.append(pred)
+
+    # auto pgd
+    x = torch.from_numpy(x_test_auto_adv[i]).cuda()
+    # predict
+    pred = smoothed_classifier.predict(x, args.N, args.alpha, args.batch)
+    auto_predictions_untargeted.append(pred)
+
+    x = torch.from_numpy(x_test_auto_adv_targeted[i]).cuda()
+    # predict
+    pred = smoothed_classifier.predict(x, args.N, args.alpha, args.batch)
+    auto_predictions_targeted.append(pred)
 
     # # output image
     # if i < 5:
@@ -170,10 +196,24 @@ predictions_untargeted = np.asarray(predictions_untargeted)
 # pp(predictions.shape)
 
 accuracy = np.sum(predictions_untargeted == y_test) / len(y_test)
-print("Accuracy on untargeted adversarial test examples: {}%".format(accuracy * 100))
+print("pgd Accuracy on untargeted adversarial test examples: {}%".format(accuracy * 100))
 
 predictions_targeted = np.asarray(predictions_targeted)
 # pp(predictions.shape)
 
 accuracy = np.sum(predictions_targeted == y_test) / len(y_test)
-print("Accuracy on targeted adversarial test examples: {}%".format(accuracy * 100))
+print("pgd Accuracy on targeted adversarial test examples: {}%".format(accuracy * 100))
+
+
+
+auto_predictions_untargeted = np.asarray(auto_predictions_untargeted)
+# pp(predictions.shape)
+
+accuracy = np.sum(auto_predictions_untargeted == y_test) / len(y_test)
+print("autopgd Accuracy on untargeted adversarial test examples: {}%".format(accuracy * 100))
+
+auto_predictions_targeted = np.asarray(auto_predictions_targeted)
+# pp(predictions.shape)
+
+accuracy = np.sum(auto_predictions_targeted == y_test) / len(y_test)
+print("autopgd Accuracy on targeted adversarial test examples: {}%".format(accuracy * 100))
