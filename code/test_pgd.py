@@ -124,11 +124,11 @@ print("Accuracy on benign test examples: {}%".format(accuracy * 100))
 # x_test_adv = attack.generate(x=x_test)
 
 # adv_crafter = DeepFool(classifier, nb_grads=args.nb_grads)
-adv_crafter_untargeted = ProjectedGradientDescent(classifier, eps=0.3, eps_step=0.1, max_iter=5)
+adv_crafter_untargeted = ProjectedGradientDescent(classifier, eps=0.1, eps_step=0.02, max_iter=5)
 print("Craft attack on untargeted training examples")
 x_test_adv = adv_crafter_untargeted.generate(x_test)
 
-adv_crafter_targeted = ProjectedGradientDescent(classifier, targeted=True, eps=0.3, eps_step=0.1, max_iter=5)
+adv_crafter_targeted = ProjectedGradientDescent(classifier, targeted=True, eps=0.1, eps_step=0.02, max_iter=5)
 print("Craft attack on targeted training examples")
 targets = random_targets(y_test, nb_classes=10)
 x_test_adv_targeted = adv_crafter_targeted.generate(x_test, **{"y":targets})
