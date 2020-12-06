@@ -46,7 +46,7 @@ args = parser.parse_args()
 # load the base classifier
 checkpoint = torch.load(args.base_classifier)
 # base_classifier = get_architecture(checkpoint["arch"])
-base_classifier = torchvision.models.resnet18(pretrained=False, progress=True)
+base_classifier = torchvision.models.resnet18(pretrained=False, progress=True, **{"num_classes", 10})
 base_classifier.load_state_dict(checkpoint['model_state_dict'])
 
 # create the smooothed classifier g
