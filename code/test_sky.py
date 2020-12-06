@@ -40,7 +40,7 @@ parser.add_argument("--N", type=int, default=100000, help="number of samples to 
 parser.add_argument("--alpha", type=float, default=0.001, help="failure probability")
 parser.add_argument("--nb_grads", type=int, default=10, help="nb_grads parameter for DeepFool adversarial trainer")
 parser.add_argument("--eps", type=float, default=0.3, help="eps parameter for PGD adversarial trainer")
-parser.add_argument("--eps_step", type=float, default=0.1, help="nb_grads parameter for DeepFool adversarial trainer")
+parser.add_argument("--eps_step", type=float, default=0.1, help="eps_step parameter for DeepFool adversarial trainer")
 args = parser.parse_args()
 
 ## Step 1: load model and dataset

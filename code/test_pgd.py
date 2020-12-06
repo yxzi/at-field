@@ -38,6 +38,8 @@ parser.add_argument("--N0", type=int, default=100)
 parser.add_argument("--N", type=int, default=100000, help="number of samples to use")
 parser.add_argument("--alpha", type=float, default=0.001, help="failure probability")
 parser.add_argument("--nb_grads", type=int, default=10, help="nb_grads parameter for DeepFool adversarial trainer")
+parser.add_argument("--eps", type=float, default=0.3, help="eps parameter for PGD adversarial trainer")
+parser.add_argument("--eps_step", type=float, default=0.1, help="eps_step parameter for DeepFool adversarial trainer")
 args = parser.parse_args()
 
 ## Step 1: load model and dataset
@@ -124,11 +126,11 @@ print("Accuracy on benign test examples: {}%".format(accuracy * 100))
 # x_test_adv = attack.generate(x=x_test)
 
 # adv_crafter = DeepFool(classifier, nb_grads=args.nb_grads)
-adv_crafter_untargeted = ProjectedGradientDescent(classifier, eps=0.1, eps_step=0.02, max_iter=5)
+adv_crafter_untargeted = ProjectedGradientDescent(classifier, eps=args.eps, eps_step=args.eps_step, max_iter=5)
 print("Craft attack on untargeted training examples")
 x_test_adv = adv_crafter_untargeted.generate(x_test)
 
-adv_crafter_targeted = ProjectedGradientDescent(classifier, targeted=True, eps=0.1, eps_step=0.02, max_iter=5)
+adv_crafter_targeted = ProjectedGradientDescent(classifier, targeted=True, eps=args.eps, eps_step=args.eps_step, max_iter=5)
 print("Craft attack on targeted training examples")
 targets = random_targets(y_test, nb_classes=10)
 x_test_adv_targeted = adv_crafter_targeted.generate(x_test, **{"y":targets})
