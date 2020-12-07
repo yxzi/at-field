@@ -20,7 +20,7 @@ import torch.optim as optim
 
 import time
 
-from utils import get_num_classes, get_architecture, ARCHITECTURES
+from utils import get_num_classes, get_architecture, ARCHITECTURES, init_logfile, log
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -69,11 +69,20 @@ def main():
     
     expdir = os.path.join("exp", "train_" + args.tag)
     model_dir = os.path.join(expdir,"models")
-    args.model_dir = model_dir
-    for x in ['exp', expdir, model_dir]:
+    log_dir = os.path.join(expdir,"log")
+    # args.model_dir = model_dir
+    for x in ['exp', expdir, model_dir, log_dir]:
         if not os.path.isdir(x):
             os.mkdir(x)
-      
+
+    logfilename = os.path.join(log_dir, "log.txt")
+    init_logfile(
+        logfilename, 
+        "arch={} epochs={} batch={} lr={} lr_step={} gamma={} noise_sd={} k_value={} eps_step={}", 
+        args.arch, args.epochs, args.batch, args.lr, args.lr_step_size, 
+        args.gamma, args.noise_sd, args.k_value, args.eps_step)
+    log(logfilename, "epoch\ttime\tlr\ttrain loss\ttrain acc\tval loss\tval acc")
+
     
     cifar_train = datasets.CIFAR10("./dataset_cache", train=True, download=True, transform=transforms.Compose([
             transforms.RandomCrop(32, padding=4),
@@ -87,15 +96,28 @@ def main():
     val_loader = DataLoader(cifar_val, shuffle=False, batch_size=args.batch,num_workers=args.workers)
     
     # model = get_architecture(args.arch)
-    model = torchvision.models.resnet18(pretrained=False, progress=True, **{"num_classes": 10}).to(device)
+    if args.arch == "resnet18":
+        model = torchvision.models.resnet18(pretrained=False, progress=True, **{"num_classes": get_num_classes()}).to(device)
+    elif args.arch == "resnet34":
+        model = torchvision.models.resnet34(pretrained=False, progress=True, **{"num_classes": get_num_classes()}).to(device)
+    elif args.arch == "resnet50":
+        model = torchvision.models.resnet50(pretrained=False, progress=True, **{"num_classes": get_num_classes()}).to(device)
+    else:
+        model = torchvision.models.resnet18(pretrained=False, progress=True, **{"num_classes": get_num_classes()}).to(device)
     
     criterion = CrossEntropyLoss()
     optimizer = SGD(model.parameters(), lr=args.lr, momentum=args.momentum, weight_decay=args.weight_decay)
     scheduler = StepLR(optimizer, step_size=args.lr_step_size, gamma=args.gamma, verbose=True)
 
     for i in range(args.epochs):
-        train(train_loader, model, criterion, optimizer, scheduler, i)
-        acc = validate(val_loader, model, criterion)
+        before = time.time()
+        train_loss, train_acc = train(train_loader, model, criterion, optimizer, scheduler, i)
+        val_loss, val_acc = validate(val_loader, model, criterion)
+        after = time.time()
+
+        log(logfilename, "{}\t{:.3}\t{:.3}\t{:.3}\t{:.3}\t{:.3}\t{:.3}".format(
+            epoch, after - before,
+            scheduler.get_lr()[0], train_loss, train_acc, val_loss, val_acc))
 
         torch.save(
             {
@@ -104,7 +126,7 @@ def main():
             'model_state_dict': model.state_dict(),
             'optimizer_state_dict': optimizer.state_dict(),
             
-            }, os.path.join(args.model_dir,"ep{}_acc_{}.pth".format(i,acc)))
+            }, os.path.join(model_dir,"ep{}_acc_{:.6f}.pth".format(i,val_acc)))
 
 
     
@@ -113,8 +135,8 @@ def train(dataloader, model,criterion, optimizer, scheduler, epoch):
     model.train()
     print('epoch ' + str(epoch))
 
-    train_loss = 0
-    train_acc = 0
+    train_loss = 0.0
+    train_acc = 0.0
     total = len(dataloader)
     start = time.time()
     toPilImage = transforms.ToPILImage()    # transform tensor into PIL image to save
@@ -166,7 +188,7 @@ def train(dataloader, model,criterion, optimizer, scheduler, epoch):
     scheduler.step()
     end = time.time()
     print('trainning time:',end - start,'sec, loss: ', train_loss/total, 'acc: ', train_acc/total)
-    
+    return train_loss/total, train_acc/total
     
 
     
@@ -187,7 +209,7 @@ def validate(dataloader, model,criterion):
         val_loss += loss.item()     
         val_acc += acc
     print('validate: loss: ', val_loss/total, 'acc: ', val_acc/total )
-    return val_acc/total
+    return val_loss/total, val_acc/total
 
 
 

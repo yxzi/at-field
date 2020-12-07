@@ -19,11 +19,10 @@ from pprint import pprint as pp
 
 from torchvision import transforms, datasets
 
-from utils import get_num_classes, get_architecture
+from utils import get_num_classes, get_architecture, init_logfile, log
 from smooth import Smooth
 
 # TODO: clean up imports
-
 
 ## parse args
 # TODO: some args are redundent
@@ -43,6 +42,20 @@ parser.add_argument("--eps", type=float, default=0.3, help="eps parameter for PG
 parser.add_argument("--eps_step", type=float, default=0.1, help="eps_step parameter for PGD adversarial trainer")
 parser.add_argument("--max_iter", type=int, default=5, help="max_iter parameter for PGD adversarial trainer")
 args = parser.parse_args()
+
+
+log_dir = os.path.join("testlog", time.time())
+# args.model_dir = model_dir
+for x in ['test_log', log_dir]:
+    if not os.path.isdir(x):
+        os.mkdir(x)
+
+logfilename = os.path.join(log_dir, "log.txt")
+init_logfile(
+    logfilename, 
+    "model_path={} sigma={} batch={} skip={} max={} N={} eps={} eps_step={} max_iter={}", 
+    args.base_classifier, args.sigma, args.batch, args.skip, args.max, 
+    args.N, args.eps, args.eps_step, args.max_iter)
 
 ## Step 1: load model and dataset
 
@@ -123,6 +136,7 @@ x_test = torch.cat(x_data).numpy()
 # test accuracy on benign examples
 accuracy = np.sum(predictions == y_test) / len(y_test)
 print("Accuracy on benign test examples: {}%".format(accuracy * 100))
+log(logfilename, "accuracy on benign test examples: {}%".format(accuracy * 100))
 
 # Step 5: Generate adversarial test examples
 
@@ -150,6 +164,17 @@ print("AutoPGD:Craft attack on targeted training examples")
 targets = random_targets(y_test, nb_classes=10)
 x_test_auto_adv_targeted = auto_adv_crafter_targeted.generate(x_test, **{"y":targets})
 
+#fgm
+fgm_adv_crafter_untargeted = FastGradientMethod(classifier, eps=args.eps, eps_step=args.eps_step)
+print("FGM:Craft attack on untargeted training examples")
+x_test_fgm_adv = fgm_adv_crafter_untargeted.generate(x_test)
+
+fgm_adv_crafter_targeted = FastGradientMethod(classifier, targeted=True, eps=args.eps_step, eps_step=args.eps_step)
+print("FGM:Craft attack on targeted training examples")
+targets = random_targets(y_test, nb_classes=10)
+x_test_fgm_adv_targeted = fgm_adv_crafter_targeted.generate(x_test, **{"y":targets})
+
+
 # deepfool takes ~8 second for each adversarial image
 
 # Step 6: Evaluate the ART classifier on adversarial test examples
@@ -159,6 +184,8 @@ predictions_untargeted = []
 predictions_targeted = []
 auto_predictions_untargeted = []
 auto_predictions_targeted = []
+fgm_predictions_untargeted = []
+fgm_predictions_targeted = []
 
 for i in range(x_test_adv.shape[0]):
     # pgd
@@ -183,6 +210,17 @@ for i in range(x_test_adv.shape[0]):
     pred = smoothed_classifier.predict(x, args.N, args.alpha, args.batch)
     auto_predictions_targeted.append(pred)
 
+    # fgm
+    x = torch.from_numpy(x_test_fgm_adv[i]).cuda()
+    # predict
+    pred = smoothed_classifier.predict(x, args.N, args.alpha, args.batch)
+    fgm_predictions_untargeted.append(pred)
+
+    x = torch.from_numpy(x_test_fgm_adv_targeted[i]).cuda()
+    # predict
+    pred = smoothed_classifier.predict(x, args.N, args.alpha, args.batch)
+    fgm_predictions_targeted.append(pred)
+
     # # output image
     # if i < 5:
     #     pil = toPilImage(x.cpu())
@@ -197,12 +235,14 @@ predictions_untargeted = np.asarray(predictions_untargeted)
 
 accuracy = np.sum(predictions_untargeted == y_test) / len(y_test)
 print("pgd Accuracy on untargeted adversarial test examples: {}%".format(accuracy * 100))
+log(logfilename, "pgd Accuracy on untargeted adversarial test examples: {}%".format(accuracy * 100))
 
 predictions_targeted = np.asarray(predictions_targeted)
 # pp(predictions.shape)
 
 accuracy = np.sum(predictions_targeted == y_test) / len(y_test)
 print("pgd Accuracy on targeted adversarial test examples: {}%".format(accuracy * 100))
+log(logfilename, "pgd Accuracy on targeted adversarial test examples: {}%".format(accuracy * 100))
 
 
 
@@ -211,9 +251,27 @@ auto_predictions_untargeted = np.asarray(auto_predictions_untargeted)
 
 accuracy = np.sum(auto_predictions_untargeted == y_test) / len(y_test)
 print("autopgd Accuracy on untargeted adversarial test examples: {}%".format(accuracy * 100))
+log(logfilename, "autopgd Accuracy on untargeted adversarial test examples: {}%".format(accuracy * 100))
 
 auto_predictions_targeted = np.asarray(auto_predictions_targeted)
 # pp(predictions.shape)
 
 accuracy = np.sum(auto_predictions_targeted == y_test) / len(y_test)
 print("autopgd Accuracy on targeted adversarial test examples: {}%".format(accuracy * 100))
+log(logfilename, "autopgd Accuracy on targeted adversarial test examples: {}%".format(accuracy * 100))
+
+
+fgm_predictions_untargeted = np.asarray(fgm_predictions_untargeted)
+# pp(predictions.shape)
+
+accuracy = np.sum(fgm_predictions_untargeted == y_test) / len(y_test)
+print("fgm Accuracy on untargeted adversarial test examples: {}%".format(accuracy * 100))
+log(logfilename, "fgm Accuracy on untargeted adversarial test examples: {}%".format(accuracy * 100))
+
+fgm_predictions_targeted = np.asarray(fgm_predictions_targeted)
+# pp(predictions.shape)
+
+accuracy = np.sum(fgm_predictions_targeted == y_test) / len(y_test)
+print("fgm Accuracy on targeted adversarial test examples: {}%".format(accuracy * 100))
+log(logfilename, "fgm Accuracy on targeted adversarial test examples: {}%".format(accuracy * 100))
+
