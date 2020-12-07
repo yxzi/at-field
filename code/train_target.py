@@ -91,7 +91,7 @@ def main():
     
     criterion = CrossEntropyLoss()
     optimizer = SGD(model.parameters(), lr=args.lr, momentum=args.momentum, weight_decay=args.weight_decay)
-    scheduler = StepLR(optimizer, step_size=args.lr_step_size, gamma=args.gamma)
+    scheduler = StepLR(optimizer, step_size=args.lr_step_size, gamma=args.gamma, verbose=True)
 
     for i in range(args.epochs):
         train(train_loader, model, criterion, optimizer, scheduler, i)
