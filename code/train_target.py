@@ -11,6 +11,13 @@ from torch.nn import CrossEntropyLoss
 from torch.optim import SGD, Optimizer
 from torch.optim.lr_scheduler import StepLR
 
+import art
+from art.estimators.classification import PyTorchClassifier
+
+import torch.nn as nn
+import torch.nn.functional as F
+import torch.optim as optim
+
 import time
 
 from utils import get_num_classes, get_architecture, ARCHITECTURES
@@ -47,7 +54,16 @@ parser.add_argument('--noise_sd', default=0.0, type=float,
 
 parser.add_argument('--print-freq', default=10, type=int,
                     metavar='N', help='print frequency (default: 10)')
+parser.add_argument('--k_value', default=0.2, type=float,
+                    help='weight of targeted noise (default: 0.2)')
+parser.add_argument('--eps_step', default=0.1, type=float,
+                    help='scale of targeted noise (default: 0.1)')
 args = parser.parse_args()
+
+min_pixel_value = 0.0   # min value
+max_pixel_value = 1.0   # max value
+
+
 
 def main():
     
@@ -102,24 +118,41 @@ def train(dataloader, model,criterion, optimizer, scheduler, epoch):
     total = len(dataloader)
     start = time.time()
     toPilImage = transforms.ToPILImage()    # transform tensor into PIL image to save
+
     for batch_num, (x, y) in enumerate(dataloader):
-
-        # print((x.shape, y.shape))
-
         x = x.to(device)
         y = y.to(device)
 
-        x = x + torch.randn_like(x, device=device) * args.noise_sd
-        
-        # # output image
-        # if i < 5:
-        #     # noisy_image = torch.clamp(x.cpu() + noise * noise_sd, min=0, max=1)
-        #     pil = toPilImage(x.cpu())
-        #     pil.save("{}/img_n_{}_.png".format("./output", batch_num ))
-        # if i == 5:
-        #     exit(0)
 
-        output = model(x)       
+        # gauss noise training
+        gauss_noise = torch.randn_like(x, device=device) * args.noise_sd
+        # x_noise = x + torch.randn_like(x, device=device) * args.noise_sd
+
+        # targeted noise training
+        tmp_criterion = nn.CrossEntropyLoss()
+        tmp_optimizer = optim.SGD(model.parameters(), lr=args.lr, momentum=args.momentum, weight_decay=args.weight_decay)
+        classifier = PyTorchClassifier(
+            model=model,
+            clip_values=(min_pixel_value, max_pixel_value),
+            loss=tmp_criterion,
+            optimizer=tmp_optimizer,
+            input_shape=(3, 32, 32),
+            nb_classes=10,
+        )
+        # generate random targets
+        targets = art.utils.random_targets(y.cpu().numpy(), get_num_classes())
+
+        # calculate loss gradient
+        grad = classifier.loss_gradient(x=x.cpu().numpy(), y=targets)
+        scaled_grad = torch.Tensor(grad * args.eps_step).to(device)
+
+        # print((scaled_grad.shape, gauss_noise.shape, targets.shape))
+
+        # combine noise and targeted noise
+        x_combine = x + (gauss_noise * (1.0 - args.k_value)) + (scaled_grad * args.k_value)
+        
+
+        output = model(x_combine)       
         loss = criterion(output, y)
         acc = accuracy(output, y)
         optimizer.zero_grad()
@@ -127,6 +160,7 @@ def train(dataloader, model,criterion, optimizer, scheduler, epoch):
         optimizer.step()
         train_loss += loss.item()       
         train_acc += acc
+
     end = time.time()
     print('trainning time:',end - start,'sec, loss: ', train_loss/total, 'acc: ', train_acc/total)
     
