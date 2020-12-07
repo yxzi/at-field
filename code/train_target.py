@@ -143,7 +143,7 @@ def train(dataloader, model,criterion, optimizer, scheduler, epoch):
         targets = art.utils.random_targets(y.cpu().numpy(), get_num_classes())
 
         # calculate loss gradient
-        grad = classifier.loss_gradient(x=x.cpu().numpy(), y=targets)
+        grad = classifier.loss_gradient(x=x.cpu().numpy(), y=targets) * (-1.0)
         scaled_grad = torch.Tensor(grad * args.eps_step).to(device)
 
         # print((scaled_grad.shape, gauss_noise.shape, targets.shape))
