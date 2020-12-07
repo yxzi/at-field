@@ -150,6 +150,8 @@ def train(dataloader, model,criterion, optimizer, scheduler, epoch):
 
         # combine noise and targeted noise
         x_combine = x + (gauss_noise * (1.0 - args.k_value)) + (scaled_grad * args.k_value)
+
+        model.zero_grad()
         
 
         output = model(x_combine)       
@@ -161,6 +163,7 @@ def train(dataloader, model,criterion, optimizer, scheduler, epoch):
         train_loss += loss.item()       
         train_acc += acc
 
+    scheduler.step()
     end = time.time()
     print('trainning time:',end - start,'sec, loss: ', train_loss/total, 'acc: ', train_acc/total)
     

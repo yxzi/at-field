@@ -127,6 +127,7 @@ def train(dataloader, model,criterion, optimizer, scheduler, epoch):
         optimizer.step()
         train_loss += loss.item()       
         train_acc += acc
+    scheduler.step()
     end = time.time()
     print('trainning time:',end - start,'sec, loss: ', train_loss/total, 'acc: ', train_acc/total)
     
