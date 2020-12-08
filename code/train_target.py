@@ -78,9 +78,9 @@ def main():
     logfilename = os.path.join(log_dir, "log.txt")
     init_logfile(
         logfilename, 
-        "arch={} epochs={} batch={} lr={} lr_step={} gamma={} noise_sd={} k_value={} eps_step={}", 
+        "arch={} epochs={} batch={} lr={} lr_step={} gamma={} noise_sd={} k_value={} eps_step={}".format(
         args.arch, args.epochs, args.batch, args.lr, args.lr_step_size, 
-        args.gamma, args.noise_sd, args.k_value, args.eps_step)
+        args.gamma, args.noise_sd, args.k_value, args.eps_step))
     log(logfilename, "epoch\ttime\tlr\ttrain loss\ttrain acc\tval loss\tval acc")
 
     

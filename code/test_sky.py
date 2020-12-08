@@ -53,9 +53,9 @@ for x in ['testlog', log_dir]:
 logfilename = os.path.join(log_dir, "log.txt")
 init_logfile(
     logfilename, 
-    "model_path={} sigma={} batch={} skip={} max={} N={} eps={} eps_step={} max_iter={}", 
+    "model_path={} sigma={} batch={} skip={} max={} N={} eps={} eps_step={} max_iter={}".format( 
     args.base_classifier, args.sigma, args.batch, args.skip, args.max, 
-    args.N, args.eps, args.eps_step, args.max_iter)
+    args.N, args.eps, args.eps_step, args.max_iter))
 
 ## Step 1: load model and dataset
 
