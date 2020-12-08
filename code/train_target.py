@@ -117,7 +117,7 @@ def main():
 
         log(logfilename, "{}\t{:.3}\t{:.3}\t{:.3}\t{:.3}\t{:.3}\t{:.3}".format(
             i, after - before,
-            scheduler.get_lr()[0], train_loss, train_acc, val_loss, val_acc))
+            scheduler.get_last_lr(), train_loss, train_acc, val_loss, val_acc))
 
         torch.save(
             {
