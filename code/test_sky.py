@@ -155,14 +155,14 @@ targets = random_targets(y_test, nb_classes=10)
 x_test_adv_targeted = adv_crafter_targeted.generate(x_test, **{"y":targets})
 
 #auto pgd
-auto_adv_crafter_untargeted = AutoProjectedGradientDescent(classifier, eps=args.eps, eps_step=args.eps_step, max_iter=args.max_iter)
-print("AutoPGD:Craft attack on untargeted training examples")
-x_test_auto_adv = auto_adv_crafter_untargeted.generate(x_test)
+# auto_adv_crafter_untargeted = AutoProjectedGradientDescent(classifier, eps=args.eps, eps_step=args.eps_step, max_iter=args.max_iter)
+# print("AutoPGD:Craft attack on untargeted training examples")
+# x_test_auto_adv = auto_adv_crafter_untargeted.generate(x_test)
 
-auto_adv_crafter_targeted = AutoProjectedGradientDescent(classifier, targeted=True, eps=args.eps_step, eps_step=args.eps_step, max_iter=args.max_iter)
-print("AutoPGD:Craft attack on targeted training examples")
-targets = random_targets(y_test, nb_classes=10)
-x_test_auto_adv_targeted = auto_adv_crafter_targeted.generate(x_test, **{"y":targets})
+# auto_adv_crafter_targeted = AutoProjectedGradientDescent(classifier, targeted=True, eps=args.eps_step, eps_step=args.eps_step, max_iter=args.max_iter)
+# print("AutoPGD:Craft attack on targeted training examples")
+# targets = random_targets(y_test, nb_classes=10)
+# x_test_auto_adv_targeted = auto_adv_crafter_targeted.generate(x_test, **{"y":targets})
 
 #fgm
 fgm_adv_crafter_untargeted = FastGradientMethod(classifier, eps=args.eps, eps_step=args.eps_step)
@@ -199,16 +199,16 @@ for i in range(x_test_adv.shape[0]):
     pred = smoothed_classifier.predict(x, args.N, args.alpha, args.batch)
     predictions_targeted.append(pred)
 
-    # auto pgd
-    x = torch.from_numpy(x_test_auto_adv[i]).cuda()
-    # predict
-    pred = smoothed_classifier.predict(x, args.N, args.alpha, args.batch)
-    auto_predictions_untargeted.append(pred)
+    # # auto pgd
+    # x = torch.from_numpy(x_test_auto_adv[i]).cuda()
+    # # predict
+    # pred = smoothed_classifier.predict(x, args.N, args.alpha, args.batch)
+    # auto_predictions_untargeted.append(pred)
 
-    x = torch.from_numpy(x_test_auto_adv_targeted[i]).cuda()
-    # predict
-    pred = smoothed_classifier.predict(x, args.N, args.alpha, args.batch)
-    auto_predictions_targeted.append(pred)
+    # x = torch.from_numpy(x_test_auto_adv_targeted[i]).cuda()
+    # # predict
+    # pred = smoothed_classifier.predict(x, args.N, args.alpha, args.batch)
+    # auto_predictions_targeted.append(pred)
 
     # fgm
     x = torch.from_numpy(x_test_fgm_adv[i]).cuda()
@@ -246,19 +246,19 @@ log(logfilename, "pgd Accuracy on targeted adversarial test examples: {}%".forma
 
 
 
-auto_predictions_untargeted = np.asarray(auto_predictions_untargeted)
-# pp(predictions.shape)
+# auto_predictions_untargeted = np.asarray(auto_predictions_untargeted)
+# # pp(predictions.shape)
 
-accuracy = np.sum(auto_predictions_untargeted == y_test) / len(y_test)
-print("autopgd Accuracy on untargeted adversarial test examples: {}%".format(accuracy * 100))
-log(logfilename, "autopgd Accuracy on untargeted adversarial test examples: {}%".format(accuracy * 100))
+# accuracy = np.sum(auto_predictions_untargeted == y_test) / len(y_test)
+# print("autopgd Accuracy on untargeted adversarial test examples: {}%".format(accuracy * 100))
+# log(logfilename, "autopgd Accuracy on untargeted adversarial test examples: {}%".format(accuracy * 100))
 
-auto_predictions_targeted = np.asarray(auto_predictions_targeted)
-# pp(predictions.shape)
+# auto_predictions_targeted = np.asarray(auto_predictions_targeted)
+# # pp(predictions.shape)
 
-accuracy = np.sum(auto_predictions_targeted == y_test) / len(y_test)
-print("autopgd Accuracy on targeted adversarial test examples: {}%".format(accuracy * 100))
-log(logfilename, "autopgd Accuracy on targeted adversarial test examples: {}%".format(accuracy * 100))
+# accuracy = np.sum(auto_predictions_targeted == y_test) / len(y_test)
+# print("autopgd Accuracy on targeted adversarial test examples: {}%".format(accuracy * 100))
+# log(logfilename, "autopgd Accuracy on targeted adversarial test examples: {}%".format(accuracy * 100))
 
 
 fgm_predictions_untargeted = np.asarray(fgm_predictions_untargeted)

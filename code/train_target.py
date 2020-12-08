@@ -116,7 +116,7 @@ def main():
         after = time.time()
 
         log(logfilename, "{}\t{:.3}\t{:.3}\t{:.3}\t{:.3}\t{:.3}\t{:.3}".format(
-            epoch, after - before,
+            i, after - before,
             scheduler.get_lr()[0], train_loss, train_acc, val_loss, val_acc))
 
         torch.save(
