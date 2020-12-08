@@ -128,7 +128,7 @@ def main():
             'model_state_dict': model.state_dict(),
             'optimizer_state_dict': optimizer.state_dict(),
             
-            }, os.path.join(model_dir,"ep{}_acc_{:.6f}.pth".format(i,val_acc)))
+            }, os.path.join(model_dir,"ep{}.pth".format(i)))
 
 
     
