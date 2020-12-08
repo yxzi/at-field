@@ -44,7 +44,7 @@ parser.add_argument("--max_iter", type=int, default=5, help="max_iter parameter 
 args = parser.parse_args()
 
 
-log_dir = os.path.join("testlog", time.time())
+log_dir = os.path.join("testlog", str(time.time()))
 # args.model_dir = model_dir
 for x in ['test_log', log_dir]:
     if not os.path.isdir(x):
