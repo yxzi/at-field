@@ -116,8 +116,8 @@ def main():
         after = time.time()
 
         log(logfilename, "{}\t{:.3}\t{:.3}\t{:.3}\t{:.3}\t{:.3}\t{:.3}".format(
-            i, after - before,
-            scheduler.get_last_lr(), train_loss, train_acc, val_loss, val_acc))
+            i, float(after - before),
+            float(scheduler.get_last_lr()[0]), train_loss, train_acc, val_loss, val_acc))
 
         torch.save(
             {
