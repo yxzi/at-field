@@ -20,7 +20,7 @@ pip install setGPU
 3. To train the baseline model with cifar10 + resnet110, please use the following command:
 ```
 output="[output_dir_name]"
-python code/train_cifar.py $output cifar_resnet110 --batch 400 --noise 0.25
+python code/train_target.py $output resnet18 --batch 400 --noise 0.25 --lr 0.1 --lr_step_size 10 --gamma 0.6 --eps_step 0.05
 ```
 this will train a resnet110 model with random noised of 0.25 magnitude added with cifar10 data, it runs for 90 epoch by default, you can break out at any epoch since models will be saved within '[repo root]/exp/[output dir name]/models'; In our experiment, running around 45 epochs will get you comparable accuracy with the paper, that is above 70% validation accuracy
 
@@ -49,7 +49,7 @@ execute the following in repo root:
 
 ```
 model="./exp/[output dir name]/models/[selected model].pth"
-python code/test_attack.py $model 0.25 --N 1000 --batch 400 --max 100
+python code/test_sky.py $model 0.25 --N 1000 --batch 400 --max 500 --eps 0.3 --eps_step 0.1 --max_iter 30
 ```
 
 where model is path to your trained models from last step
