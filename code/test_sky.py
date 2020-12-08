@@ -10,7 +10,7 @@ from art.utils import load_mnist, load_cifar10, random_targets
 import argparse
 import os
 import setGPU
-from time import time
+import time
 import torch
 import torchvision
 import datetime
