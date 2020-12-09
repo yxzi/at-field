@@ -12,7 +12,7 @@ from torch.utils.data import Dataset
 _CIFAR10_MEAN = [0.4914, 0.4822, 0.4465]
 _CIFAR10_STDDEV = [0.2023, 0.1994, 0.2010]
 
-ARCHITECTURES = ["cifar_resnet20", "cifar_resnet110"]
+ARCHITECTURES = ["resnet18", "resnet34", "resnet50", "resnet101"]
 
 def get_architecture(arch: str) -> torch.nn.Module:
     """ Return a neural network (with random weights)
@@ -57,3 +57,13 @@ class NormalizeLayer(torch.nn.Module):
         means = self.means.repeat((batch_size, height, width, 1)).permute(0, 3, 1, 2)
         sds = self.sds.repeat((batch_size, height, width, 1)).permute(0, 3, 1, 2)
         return (input - means) / sds
+
+def init_logfile(filename: str, text: str):
+    f = open(filename, 'w')
+    f.write(text+"\n")
+    f.close()
+
+def log(filename: str, text: str):
+    f = open(filename, 'a')
+    f.write(text+"\n")
+    f.close()
