@@ -20,24 +20,12 @@ pip install setGPU
 3. To train the baseline model with cifar10 + resnet110, please use the following command:
 ```
 output="[output_dir_name]"
-python code/train_target.py $output resnet18 --batch 400 --noise 0.25 --lr 0.1 --lr_step_size 10 --gamma 0.6 --eps_step 0.05
+python code/train_target.py $output resnet18 --batch 400 --noise 0.25 --eps_step 0.05
 ```
 this will train a resnet110 model with random noised of 0.25 magnitude added with cifar10 data, it runs for 90 epoch by default, you can break out at any epoch since models will be saved within '[repo root]/exp/[output dir name]/models'; In our experiment, running around 45 epochs will get you comparable accuracy with the paper, that is above 70% validation accuracy
 
-4. To test prediction on cifar10 test data and print out every result in a output file, use the following command in repo root:
 
-```
-model="./exp/[output dir name]/models/[selected model].pth"
-prediction_output="[output file path]"
-python code/predict_cifar.py $model 0.25 $prediction_output --alpha 0.001 --N 1000 --skip 100 --batch 400
-```
-
-this will run prediction on 0.25 noise magnitude model you just trained on cifar10 test data
-"--skip" specify how much test data you want to skip between to tested data (eg. if skip is 100, the 100, 200, 300, 400, ... th data will be tested)
-accuracy will be printed out in the end
-
-
-5. To run prediction + attack, install following dependency:
+4. To run prediction + attack, install following dependency:
 
 ```
 pip install adversarial-robustness-toolbox
